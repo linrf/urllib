@@ -18,6 +18,27 @@ describe('options.data.test.ts2', () => {
     await close();
   });
 
+  it('should default GET with data and auto convert to query string when data with undefined', async () => {
+    const response = await urllib.request(_url, {
+      data: {
+        sql: 'SELECT * from table',
+        data: '哈哈',
+        sprint: undefined,
+      },
+      dataType: 'json',
+    });
+    assert.equal(response.status, 200);
+    assert.equal(response.headers['content-type'], 'application/json');
+    assert.equal(response.data.method, 'GET');
+    assert(response.url.startsWith(_url));
+    assert(!response.redirected);
+    // console.log(response.headers);
+    assert.equal(response.data.url, '/?sql=SELECT+*+from+table&data=%E5%93%88%E5%93%88');
+    const url = new URL(response.data.href);
+    assert.equal(url.searchParams.get('sql'), 'SELECT * from table');
+    assert.equal(url.searchParams.get('data'), '哈哈');
+  });
+
   it('should default GET with data and auto convert to query string', async () => {
     const response = await urllib.request(_url, {
       data: {
@@ -359,7 +380,7 @@ describe('options.data.test.ts2', () => {
       n1: 1,
       now,
     }));
-    const readable = Readable.from([ buf ]);
+    const readable = Readable.from([buf]);
     const response = await urllib.request(_url, {
       method: 'put',
       data: readable,
@@ -383,7 +404,7 @@ describe('options.data.test.ts2', () => {
       n1: 1,
       now,
     }));
-    const readable = Readable.from([ buf ]);
+    const readable = Readable.from([buf]);
     const response = await urllib.request(_url, {
       method: 'put',
       data: readable,
